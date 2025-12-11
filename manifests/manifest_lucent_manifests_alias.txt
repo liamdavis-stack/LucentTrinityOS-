@@ -1,0 +1,9 @@
+[ENTRY]
+Date: 2025-11-24
+Title: Lucent Manifests Alias
+Category: Environment / Repository Access
+Author: Liam Zachary Davis
+File: manifests/manifest_lucent_manifests_alias.txt
+Status: Sovereign
+Notes: Defined alias 'lucent-manifests' to list all manifest files and display their titles in one command.
+[END]
