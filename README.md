@@ -1,0 +1,2 @@
+# LucentTrinityOS-
+Best computer ever 🤪
