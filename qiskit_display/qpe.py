@@ -1,0 +1,1 @@
+from qiskit import QuantumCircuit\n\n# QPE with 3 counting qubits + 1 target\nqc = QuantumCircuit(4)\nqc.h([0,1,2])\nqc.x(3)\nqc.cp(3.14159/2,0,3)\nqc.cp(3.14159/4,1,3)\nqc.cp(3.14159/8,2,3)\nqc.measure_all()\nprint(qc)
