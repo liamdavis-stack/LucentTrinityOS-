@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+python3 <<'ENDPY'
+# [PASTE FULL ASCII Tron AI CODE FROM LAST INSTALLER]
+ENDPY

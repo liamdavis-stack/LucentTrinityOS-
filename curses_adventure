@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+import curses, random, time
+
+# Player stats
+player = {"hp":10, "inventory":[],"pos":[2,2],"score":0}
+
+# Map size
+HEIGHT, WIDTH = 5, 5
+
+# NPCs with simple AI behavior
+npcs = {
+    "BeepBoop": {"symbol":"B","pos":[0,0],"behavior":"chase"},
+    "Harmony": {"symbol":"H","pos":[4,4],"behavior":"random"},
+    "Chaos": {"symbol":"C","pos":[0,4],"behavior":"flee"}
+}
+
+# Items
+items = {
+    (1,1): "mysterious artifact",
+    (3,2): "ancient scroll",
+    (2,4): "cosmic credit"
+}
+
+# Move NPCs
+def move_npcs():
+    for npc in npcs.values():
+        y,x = npc["pos"]
+        py,px = player["pos"]
+        dy,dx = 0,0
+        if npc["behavior"]=="chase":
+            dy = (py - y) and (1 if py>y else -1)
+            dx = (px - x) and (1 if px>x else -1)
+        elif npc["behavior"]=="flee":
+            dy = (y - py) and (1 if y>py else -1)
+            dx = (x - px) and (1 if x>px else -1)
+        else: # random
+            dy,dx = random.choice([(0,1),(0,-1),(1,0),(-1,0)])
+        npc["pos"] = [(y+dy)%HEIGHT, (x+dx)%WIDTH]
+
+# Draw map
+def draw_map(stdscr):
+    stdscr.clear()
+    for y in range(HEIGHT):
+        line=""
+        for x in range(WIDTH):
+            if [y,x]==player["pos"]:
+                line+="P "
+            elif any(npc["pos"]==[y,x] for npc in npcs.values()):
+                line+=next(npc["symbol"] for npc in npcs.values() if npc["pos"]==[y,x])+" "
+            elif (y,x) in items:
+                line+="* "
+            else:
+                line+=". "
+        stdscr.addstr(y,0,line)
+    stdscr.addstr(HEIGHT+1,0,f"HP: {player['hp']}  Inventory: {player['inventory']}  Score: {player['score']}")
+    stdscr.addstr(HEIGHT+2,0,"Move with WASD, q to quit")
+    stdscr.refresh()
+
+# Main loop
+def main(stdscr):
+    curses.curs_set(0)
+    while True:
+        draw_map(stdscr)
+        key = stdscr.getkey().lower()
+        y,x = player["pos"]
+        if key=="q": break
+        if key=="w": y=(y-1)%HEIGHT
+        if key=="s": y=(y+1)%HEIGHT
+        if key=="a": x=(x-1)%WIDTH
+        if key=="d": x=(x+1)%WIDTH
+        player["pos"]=[y,x]
+
+        # Check items
+        if (y,x) in items:
+            player["inventory"].append(items.pop((y,x)))
+            player["score"]+=1
+
+        # Check NPC encounters
+        for npc_name,npc in npcs.items():
+            if npc["pos"]==player["pos"]:
+                outcome=random.choice(["friend","fight"])
+                if outcome=="friend":
+                    player["score"]+=2
+                else:
+                    player["hp"]-=2
+                    if player["hp"]<=0:
+                        draw_map(stdscr)
+                        stdscr.addstr(HEIGHT+4,0,"You have fallen in battle. Game Over.")
+                        stdscr.refresh()
+                        time.sleep(2)
+                        return
+        move_npcs()
+
+        if not items:
+            draw_map(stdscr)
+            stdscr.addstr(HEIGHT+4,0,"All items collected! Adventure complete!")
+            stdscr.addstr(HEIGHT+5,0,f"Final Score: {player['score']}, Inventory: {player['inventory']}")
+            stdscr.refresh()
+            stdscr.getkey()
+            break
+
+curses.wrapper(main)

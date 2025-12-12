@@ -1,0 +1,204 @@
+#!/usr/bin/env python3
+import curses, random, time
+
+player = {"hp":15, "inventory":[],"pos":[5,5],"score":0}
+HEIGHT, WIDTH = 10, 10
+npcs = {
+    "BeepBoop": {"symbol":"B","pos":[0,0],"behavior":"chase"},
+    "Harmony": {"symbol":"H","pos":[9,9],"behavior":"random"},
+    "Chaos": {"symbol":"C","pos":[0,9],"behavior":"flee"},
+    "Flow": {"symbol":"F","pos":[9,0],"behavior":"patrol","patrol_dir":[1,0]}
+}
+items = {
+    (2,2): "mysterious artifact",
+    (7,3): "ancient scroll",
+    (4,8): "cosmic credit",
+    (1,7): "healing potion",
+    (8,5): "magic rune"
+}
+hazards = {
+    (3,3): "spike trap",
+    (6,6): "poison gas",
+    (2,7): "falling debris"
+}
+
+def draw_map(stdscr):
+    stdscr.clear()
+    for y in range(HEIGHT):
+        line=""
+        for x in range(WIDTH):
+            if [y,x]==player["pos"]:
+                line+="P "
+            elif any(npc["pos"]==[y,x] for npc in npcs.values()):
+                line+=next(npc["symbol"] for npc in npcs.values() if npc["pos"]==[y,x])+" "
+            elif (y,x) in items:
+                line+="* "
+            elif (y,x) in hazards:
+                line+="! "
+            else:
+                line+=". "
+        stdscr.addstr(y,0,line)
+    stdscr.addstr(HEIGHT+1,0,f"HP: {player['hp']}  Inventory: {player['inventory']}  Score: {player['score']}")
+    stdscr.addstr(HEIGHT+2,0,"Move with WASD, q to quit")
+    stdscr.refresh()
+
+def move_npcs():
+    for npc in npcs.values():
+        y,x = npc["pos"]
+        py,px = player["pos"]
+        behavior = npc.get("behavior","random")
+        dy,dx=0,0
+        if behavior=="chase":
+            dy = (py - y) and (1 if py>y else -1)
+            dx = (px - x) and (1 if px>x else -1)
+        elif behavior=="flee":
+            dy = (y - py) and (1 if y>py else -1)
+            dx = (x - px) and (1 if x>px else -1)
+        elif behavior=="patrol":
+            pd = npc.get("patrol_dir",[1,0])
+            dy,dx = pd
+            npc["patrol_dir"] = [dy if 0<=y+dy<HEIGHT else -dy, dx if 0<=x+dx<WIDTH else -dx]
+        else:
+            dy,dx=random.choice([(0,1),(0,-1),(1,0),(-1,0)])
+        npc["pos"] = [(y+dy)%HEIGHT, (x+dx)%WIDTH]
+
+def main(stdscr):
+    curses.curs_set(0)
+    while True:
+        draw_map(stdscr)
+        key = stdscr.getkey().lower()
+        y,x = player["pos"]
+        if key=="q": break
+        if key=="w": y=(y-1)%HEIGHT
+        if key=="s": y=(y+1)%HEIGHT
+        if key=="a": x=(x-1)%WIDTH
+        if key=="d": x=(x+1)%WIDTH
+        player["pos"]=[y,x]
+
+        if (y,x) in items:
+            item=items.pop((y,x))
+            player["inventory"].append(item)
+            player["score"]+=1
+            if item=="healing potion": player["hp"]+=3
+
+        if (y,x) in hazards:
+            hazard = hazards[(y,x)]
+            player["hp"]-=3
+            stdscr.addstr(HEIGHT+4,0,f"You hit a {hazard}! HP -3")
+            stdscr.refresh()
+            time.sleep(1)
+            if player["hp"]<=0:
+                draw_map(stdscr)
+                stdscr.addstr(HEIGHT+5,0,"You succumbed to the hazards. Game Over.")
+                stdscr.refresh()
+                time.sleep(2)
+                return
+
+        for npc_name,npc in npcs.items():
+            if npc["pos"]==player["pos"]:
+                outcome=random.choice(["friend","fight"])
+                if outcome=="friend":
+                    player["score"]+=2
+                    stdscr.addstr(HEIGHT+4,0,f"{npc_name} becomes your ally! Score +2")
+                else:
+                    player["hp"]-=2
+                    stdscr.addstr(HEIGHT+4,0,f"{npc_name} attacks! HP -2")
+                    if player["hp"]<=0:
+                        draw_map(stdscr)
+                        stdscr.addstr(HEIGHT+5,0,"You have fallen in battle. Game Over.")
+                        stdscr.refresh()
+                        time.sleep(2)
+                        return
+                stdscr.refresh()
+                time.sleep(1)
+
+        move_npcs()
+
+        if not items:
+            draw_map(stdscr)
+            stdscr.adds
+~/lucenttrinityos/curses_adventure
+~/lucenttrinityos/roguelike_adventure
+mkdir -p ~/lucenttrinityos && cat > ~/lucenttrinityos/chooserpg <<'EOF'
+#!/usr/bin/env python3
+import sys, time
+
+# Simple typewriter effect
+def say(text, delay=0.03):
+    for c in text:
+        sys.stdout.write(c)
+        sys.stdout.flush()
+        time.sleep(delay)
+    print()
+
+# Player stats and inventory
+player = {"name":"Player", "hp":10, "inventory":[]}
+
+# Adventure scenes
+scenes = {
+    "start": {
+        "desc": "You awaken in a mysterious cosmic chamber. A glowing terminal hums nearby. Paths lie before you: left (l), right (r).",
+        "choices": {"l":"library", "r":"lab"}
+    },
+    "library": {
+        "desc": "You enter an ancient library filled with holographic tomes. A floating book offers knowledge or power (k/p).",
+        "choices": {"k":"knowledge_room", "p":"power_room"}
+    },
+    "lab": {
+        "desc": "A futuristic lab hums with Beep Boop modules. You can interact with AI (a) or explore the back door (b).",
+        "choices": {"a":"ai_room", "b":"secret_room"}
+    },
+    "knowledge_room": {
+        "desc": "You gain wisdom from the tomes. HP +2",
+        "choices": {}, "effect": lambda: player.update({"hp":player["hp"]+2})
+    },
+    "power_room": {
+        "desc": "You are imbued with strange energy. Inventory +1 mysterious artifact",
+        "choices": {}, "effect": lambda: player["inventory"].append("mysterious artifact")
+    },
+    "ai_room": {
+        "desc": "Beep Boop greets you. It offers a riddle: solve (s) or ignore (i).",
+        "choices": {"s":"riddle_room", "i":"hallway"}
+    },
+    "secret_room": {
+        "desc": "You find a hidden stash of cosmic credits. Inventory +3 credits",
+        "choices": {}, "effect": lambda: player["inventory"].extend(["credit"]*3)
+    },
+    "riddle_room": {
+        "desc": "Beep Boop asks: 'I speak without a mouth and hear without ears. What am I?'",
+        "choices": {"echo":"victory", "other":"trap"}
+    },
+    "hallway": {
+        "desc": "You walk the corridor safely but find nothing.",
+        "choices": {}, "effect": lambda: say("Nothing happens, but you survive.")
+    },
+    "victory": {
+        "desc": "You solved Beep Boop's riddle! Victory is yours!",
+        "choices": {}
+    },
+    "trap": {
+        "desc": "Wrong answer! The room collapses. Game over.",
+        "choices": {}
+    }
+}
+
+def play_scene(scene_name):
+    scene = scenes[scene_name]
+    if "effect" in scene:
+        scene["effect"]()
+    say(scene["desc"])
+    if not scene["choices"]:
+        say(f"Your final stats: HP={player['hp']}, Inventory={player['inventory']}")
+        return
+    while True:
+        choice = input(">> ").lower()
+        if choice in scene["choices"]:
+            next_scene = scene["choices"][choice]
+            play_scene(next_scene)
+            return
+        else:
+            say("Invalid choice. Try again.")
+
+say("🌌 Welcome to LucentTrinityOS+ Adventure!")
+player["name"] = input("Enter your name: ")
+play_scene("start")

@@ -1,0 +1,31 @@
+{
+  "session_saved": true,
+  "timestamp": "2025-11-24T07:00:00-0800",
+  "details": {
+    "iSH_integration": {
+      "terminal_dashboard": true,
+      "agents": ["Beep Boop","Harmony","Chaos","Flow","Governance"],
+      "ascii_particles": true,
+      "faith_meter": true,
+      "rooms_and_commands": true
+    },
+    "ngrok_integration": {
+      "pre_authentication": "planned",
+      "embedded_base64_option": "planned",
+      "offline_mode_available": true,
+      "verification_issues_logged": true
+    },
+    "deployment_attempts": ["iSH","Docker","Fly.io"],
+    "issues_logged": [
+      "iSH syntax error for process substitution <(...)",
+      "Ngrok verification problems",
+      "URL placeholder errors for ZIP download",
+      "TinyURL 404 issues"
+    ],
+    "next_steps": [
+      "Fully self-contained iSH script with embedded ngrok",
+      "Optional offline-only dashboard version without ngrok",
+      "ngrok pre-authentication implementation"
+    ]
+  }
+}

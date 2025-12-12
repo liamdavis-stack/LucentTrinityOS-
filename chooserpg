@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+import sys, time
+
+# Simple typewriter effect
+def say(text, delay=0.03):
+    for c in text:
+        sys.stdout.write(c)
+        sys.stdout.flush()
+        time.sleep(delay)
+    print()
+
+# Player stats and inventory
+player = {"name":"Player", "hp":10, "inventory":[]}
+
+# Adventure scenes
+scenes = {
+    "start": {
+        "desc": "You awaken in a mysterious cosmic chamber. A glowing terminal hums nearby. Paths lie before you: left (l), right (r).",
+        "choices": {"l":"library", "r":"lab"}
+    },
+    "library": {
+        "desc": "You enter an ancient library filled with holographic tomes. A floating book offers knowledge or power (k/p).",
+        "choices": {"k":"knowledge_room", "p":"power_room"}
+    },
+    "lab": {
+        "desc": "A futuristic lab hums with Beep Boop modules. You can interact with AI (a) or explore the back door (b).",
+        "choices": {"a":"ai_room", "b":"secret_room"}
+    },
+    "knowledge_room": {
+        "desc": "You gain wisdom from the tomes. HP +2",
+        "choices": {}, "effect": lambda: player.update({"hp":player["hp"]+2})
+    },
+    "power_room": {
+        "desc": "You are imbued with strange energy. Inventory +1 mysterious artifact",
+        "choices": {}, "effect": lambda: player["inventory"].append("mysterious artifact")
+    },
+    "ai_room": {
+        "desc": "Beep Boop greets you. It offers a riddle: solve (s) or ignore (i).",
+        "choices": {"s":"riddle_room", "i":"hallway"}
+    },
+    "secret_room": {
+        "desc": "You find a hidden stash of cosmic credits. Inventory +3 credits",
+        "choices": {}, "effect": lambda: player["inventory"].extend(["credit"]*3)
+    },
+    "riddle_room": {
+        "desc": "Beep Boop asks: 'I speak without a mouth and hear without ears. What am I?'",
+        "choices": {"echo":"victory", "other":"trap"}
+    },
+    "hallway": {
+        "desc": "You walk the corridor safely but find nothing.",
+        "choices": {}, "effect": lambda: say("Nothing happens, but you survive.")
+    },
+    "victory": {
+        "desc": "You solved Beep Boop's riddle! Victory is yours!",
+        "choices": {}
+    },
+    "trap": {
+        "desc": "Wrong answer! The room collapses. Game over.",
+        "choices": {}
+    }
+}
+
+def play_scene(scene_name):
+    scene = scenes[scene_name]
+    if "effect" in scene:
+        scene["effect"]()
+    say(scene["desc"])
+    if not scene["choices"]:
+        say(f"Your final stats: HP={player['hp']}, Inventory={player['inventory']}")
+        return
+    while True:
+        choice = input(">> ").lower()
+        if choice in scene["choices"]:
+            next_scene = scene["choices"][choice]
+            play_scene(next_scene)
+            return
+        else:
+            say("Invalid choice. Try again.")
+
+say("🌌 Welcome to LucentTrinityOS+ Adventure!")
+player["name"] = input("Enter your name: ")
+play_scene("start")

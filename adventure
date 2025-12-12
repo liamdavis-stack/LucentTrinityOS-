@@ -1,0 +1,101 @@
+#!/usr/bin/env python3
+import sys, time, random, threading, os
+
+# Typewriter effect
+def say(text, delay=0.03):
+    for c in text:
+        sys.stdout.write(c)
+        sys.stdout.flush()
+        time.sleep(delay)
+    print()
+
+# Clear terminal
+def clear(): os.system('clear')
+
+# Player stats
+player = {"name":"Player", "hp":10, "inventory":[],"pos":[2,2],"score":0}
+
+# Map (5x5 grid)
+world = [["." for _ in range(5)] for _ in range(5)]
+
+# NPCs with simple AI movement
+npcs = {
+    "BeepBoop": {"symbol":"B","pos":[0,0]},
+    "Harmony": {"symbol":"H","pos":[4,4]},
+    "Chaos": {"symbol":"C","pos":[0,4]}
+}
+
+# Items in world
+items = {
+    (1,1): "mysterious artifact",
+    (3,2): "ancient scroll",
+    (2,4): "cosmic credit"
+}
+
+# Display map with player, NPCs, and items
+def display_map():
+    clear()
+    for y in range(5):
+        line=""
+        for x in range(5):
+            if [y,x]==player["pos"]:
+                line+="P "
+            elif any(npc["pos"]==[y,x] for npc in npcs.values()):
+                line+=next(npc["symbol"] for npc in npcs.values() if npc["pos"]==[y,x])+" "
+            elif (y,x) in items:
+                line+="* "
+            else:
+                line+=". "
+        print(line)
+    print(f"HP: {player['hp']}  Inventory: {player['inventory']}  Score: {player['score']}")
+
+# Move NPCs randomly
+def move_npcs():
+    for npc in npcs.values():
+        dy,dx=random.choice([(0,1),(0,-1),(1,0),(-1,0)])
+        ny=(npc["pos"][0]+dy)%5
+        nx=(npc["pos"][1]+dx)%5
+        npc["pos"]=[ny,nx]
+
+# Handle player movement
+def move_player():
+    while True:
+        display_map()
+        cmd = input("Move (w/a/s/d) or q to quit: ").lower()
+        if cmd=="q": break
+        y,x=player["pos"]
+        if cmd=="w": y=(y-1)%5
+        if cmd=="s": y=(y+1)%5
+        if cmd=="a": x=(x-1)%5
+        if cmd=="d": x=(x+1)%5
+        player["pos"]=[y,x]
+        # Check for items
+        if (y,x) in items:
+            item=items.pop((y,x))
+            player["inventory"].append(item)
+            player["score"]+=1
+            say(f"You found a {item}! Score +1")
+        # Check for NPC encounters
+        for npc_name,npc in npcs.items():
+            if npc["pos"]==player["pos"]:
+                say(f"You encounter {npc_name}!")
+                outcome=random.choice(["friend","fight"])
+                if outcome=="friend":
+                    say(f"{npc_name} becomes your ally! Score +2")
+                    player["score"]+=2
+                else:
+                    say(f"{npc_name} attacks! HP -2")
+                    player["hp"]-=2
+                    if player["hp"]<=0:
+                        say("You have fallen in battle. Game Over.")
+                        return
+        move_npcs()
+        if not items:
+            say("All items collected! Adventure complete!")
+            say(f"Final Score: {player['score']}, Inventory: {player['inventory']}")
+            return
+
+# Start game
+say("🌌 Welcome to LucentTrinityOS+ Adventure!")
+player["name"]=input("Enter your name: ")
+move_player()
