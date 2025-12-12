@@ -1,0 +1,1 @@
+LucentTrinityOS+ Quantum Library Manifest\nIncludes: Bell, GHZ, QFT, Teleportation, Grover circuits\nCertified as Covenant XXXVIII
