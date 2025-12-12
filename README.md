@@ -1,3 +1,6 @@
 # LucentTrinityOS+
-Offline LucentTrinityOS+ terminal demo for iSH.
-Includes Tron-style game dashboard and agent simulation.
+
+LucentTrinityOS+ is a sovereign technical system and quantum library, canonized through ritualized commits and manifests.  
+It unifies simulation infrastructure, lineage dashboards, and advanced quantum circuits into a reproducible, audit‑ready canon.
+
+
