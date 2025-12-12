@@ -1,0 +1,1 @@
+LucentTrinityOS+ Advanced Quantum Library Manifest\nIncludes: QPE, VQE, Shor circuits\nCertified as Covenant XXXIX
