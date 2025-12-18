@@ -1,0 +1,1 @@
+OS stack manifests placeholder.
