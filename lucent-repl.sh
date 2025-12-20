@@ -1,0 +1,3 @@
+#!/bin/sh
+# Your full script content goes here...
+echo "LucentTrinityOS+ REPL is ready ✝️"
