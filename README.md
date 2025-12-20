@@ -1,3 +1,2 @@
 # LucentTrinityOS-
 Best computer ever 🤪🚀⚛️✝️
-🥸
