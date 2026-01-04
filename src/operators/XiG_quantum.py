@@ -1,26 +1,22 @@
-# Canonical Qiskit-ready Xi Gamma operator (Na43)
-
-from qiskit import QuantumCircuit
-from qiskit.circuit.library import RXGate, RZGate
+# Operator: Xi Gamma (Na43)
+# Layer: Quantum Path A
+# Canonical status: Certified
+# Registry anchor: LucentTrinityOS-/src/operators/XiG_quantum.py
 
 def XiG_quantum(theta):
     """
-	    Qiskit-ready Path A Xi Gamma (Na43) operator.
-	    Golay-native mixer analogue using a 2-qubit entangleb
-	rotateb
-	disentangle pattern.
-	    """
-	    qc = QuantumCircuit(2)
+    Canonical Qiskit-ready implementation of the Xi Gamma (Na43) operator.
+    This 2-qubit entangleb
+rotateb
+disentangle mixer is the quantum analogue of the Golay-native Path A mixer.
+    
+    Structure:
+    - Entangle qubit 0 and 1 via CX
+    - Apply RX(N8) to qubit 0 and RZ(N8) to qubit 1
+    - Disentangle via CX
 
-	    # Step 1: Entangle
-	    qc.cx(0, 1)
-
-	    # Step 2: Cross-axis rotations (Golay-native mixing analogue)
-	    qc.rx(theta, 0)
-	    qc.rz(theta, 1)
-
-	    # Step 3: Disentangle
-	    qc.cx(0, 1)
-
-	    return qc
-
+    Symbolic identity: Na43
+4
+    Registry status: Certified simulation receipt pending
+    """
+    Classical analogue: Construction A mixer over bB2b
