@@ -1,15 +1,20 @@
-from qiskit import QuantumCircuit
-
 def Cross_quantum():
     """
-    Quantum analogue of the b        (q0, q1, q2) -> (q2, q0, q1)
-    This is the Path A reduction of the 24D Steiner octad crossing.
+    Canonical Qiskit-ready Cross (b    Quantum analogue of the Steiner octad 3-cycle acting on three
+    8-dimensional blocks in the classical S(5,8,24) system. This
+    implementation performs the reduced 3-qubit permutation:
+
+        (q0, q1, q2) b
+
+    Structure:
+    - SWAP(q0, q2)
+    - SWAP(q1, q2)
+
+    Properties:
+    - Order-3 permutation
+    - Reversible and unitary
+    - Minimal 3-cycle representation in Qiskit
+
+    Symbolic identity: b    Registry status: Canonical
     """
-    qc = QuantumCircuit(3)
-
-    # Perform the 3-cycle using SWAP gates
-    qc.swap(0, 2)   # (q0, q1, q2) -> (q2, q1, q0)
-    qc.swap(1, 2)   # (q2, q1, q0) -> (q2, q0, q1)
-
-    return qc
 
