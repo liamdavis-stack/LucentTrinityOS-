@@ -1,3 +1,10 @@
+
+import pytest
+try:
+    import numpy as np
+    from qiskit.quantum_info import Operator
+except Exception as e:
+    pytest.skip(f"Skipping NumPy/Qiskit tests in this environment (iOS/iSH): {e}", allow_module_level=True)
 import numpy as np
 from itertools import product
 from qiskit.quantum_info import Operator
