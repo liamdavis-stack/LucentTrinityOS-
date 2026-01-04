@@ -1,3 +1,40 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+ruff_cache/
+.coverage
+htmlcov/
 
-# local scratch/sync directory
+# --- Environments ---
+.venv/
+venv/
+ENV/
+env/
+
+# --- Editor/OS junk ---
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# --- iSH / local scratch ---
 LucentTrinityOS-sync/
+
+# --- Logs: ignore only truly local/runtime logs ---
+# If these are meant to be canonical artifacts, delete these two lines.
+*.tmp.log
+*.runtime.log
+# logs / runtime artifacts
+canon.log
+registry.log
+*.log
+registry/*.log
+registry/**/ledger.log
+
+# simulation outputs
+operators/**/sims/outputs/
+operators/**/data/
