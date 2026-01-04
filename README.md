@@ -7,3 +7,4 @@ Certain transformations are defined as lawful, others as disallowed, based on ex
 
 This project does not attempt to be religiously neutral.  
 Readers and contributors are expected to engage the system on its own stated terms.
+Sometimes described, half-jokingly, as “mathematical apologetics.”
