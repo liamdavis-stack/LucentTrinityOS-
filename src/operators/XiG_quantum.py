@@ -1,3 +1,4 @@
+# Canonical Qiskit-ready Xi Gamma operator (Na43)
 
 from qiskit import QuantumCircuit
 from qiskit.circuit.library import RXGate, RZGate
