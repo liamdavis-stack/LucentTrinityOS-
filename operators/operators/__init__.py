@@ -1,1 +1,0 @@
-# LucentTrinityOS✝️ operators package

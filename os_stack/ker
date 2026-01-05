@@ -1,0 +1,57 @@
+    # -------------------------------------------------------------
+    # Operator Dispatch
+    # -------------------------------------------------------------
+    def dispatch_operator(self, name: str, *args, **kwargs):
+        """
+        Dynamically load and execute an operator from src/operators.
+        Expects a module at src/operators/<name>.py with a callable <name>.
+        """
+        try:
+            module = __import__(f"src.operators.{name}", fromlist=[name])
+        except ImportError as e:
+            raise KernelPanic(f"Operator '{name}' not found") from e
+
+        if not hasattr(module, name):
+            raise KernelPanic(f"Operator function '{name}' missing in module")
+
+        op = getattr(module, name)
+        result = op(*args, **kwargs)
+
+        self.write_registry({
+            "event": "operator_dispatch",
+            "operator": name,
+            "args": list(args),   # JSON-friendly
+            "kwargs": kwargs
+        })
+
+        return result
+
+    # -------------------------------------------------------------
+    # Boot + Status
+    # -------------------------------------------------------------
+    def boot(self):
+        self.log_canon("LucentTrinityOS- kernel booted")
+        return {
+            "status": "OK",
+            "boot_time": self.boot_time,
+            "registry": str(self.registry),
+            "canon": str(self.canon)
+        }
+
+    def status(self):
+        uptime = time.time() - self.boot_time
+        try:
+            registry_entries = sum(1 for _ in self.registry.open())
+        except FileNotFoundError:
+            registry_entries = 0
+
+        try:
+            canon_size = self.canon.stat().st_size
+        except FileNotFoundError:
+            canon_size = 0
+
+        return {
+            "uptime_seconds": uptime,
+            "registry_entries": registry_entries,
+            "canon_size_bytes": canon_size
+        }

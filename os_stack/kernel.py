@@ -1,127 +1,116 @@
-"""
-LucentTrinityOS - Kernel Layer
------------------------------
-
-Minimal execution kernel providing:
-- registry access
-- operator dispatch
-- simulation routing
-- canonical logging
-- reproducible SHA256 sealing
-
-This is the glue that binds the operator canon, registry ledger,
-and simulation stack into a coherent OS-style execution environment.
-"""
-
 from __future__ import annotations
 
-import hashlib
 import json
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
+import importlib
 
 
-DEFAULT_REGISTRY_PATH = Path("registry/ledger.log")
-DEFAULT_CANON_LOG = Path("canon.log")
+OptionalState = Dict[str, Any]
 
 
-class KernelPanic(Exception):
-    """Raised when the kernel encounters a non-recoverable state."""
+class KernelPanic(RuntimeError):
     pass
 
 
 @dataclass
-class KernelPaths:
-    registry_path: Path = DEFAULT_REGISTRY_PATH
-    canon_log_path: Path = DEFAULT_CANON_LOG
+class DispatchRecord:
+    event: str
+    operator: str
+    ts: float
+    args: List[Any]
+    kwargs: Dict[str, Any]
 
 
 class TrinityKernel:
-    def __init__(self, paths: KernelPaths | None = None):
-        self.boot_time = time.time()
-        self.paths = paths or KernelPaths()
+    """
+    Minimal, paste-safe kernel for iSH.
+    - Discovers operators from the package directory
+    - Dispatches by importing module and calling function of same name
+    - Logs canon + registry ledger
+    """
 
-        # Ensure required dirs exist
-        self.paths.registry_path.parent.mkdir(parents=True, exist_ok=True)
+    OPERATOR_PACKAGE = "src.axiom_engine.operators"
 
-        # Ensure files exist
-        self.paths.registry_path.touch(exist_ok=True)
-        self.paths.canon_log_path.touch(exist_ok=True)
+    def __init__(self, repo_root: Path | None = None) -> None:
+        self.repo_root = (repo_root or Path(__file__).resolve().parents[1]).resolve()
 
-    # -------------------------------------------------------------
-    # Logging + Sealing
-    # -------------------------------------------------------------
-    def seal(self, payload: Dict[str, Any]) -> str:
-        """Return a SHA256 seal for a canonical payload."""
-        encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
-        return hashlib.sha256(encoded).hexdigest()
+        self.registry_dir = (self.repo_root / "registry").resolve()
+        self.registry_dir.mkdir(parents=True, exist_ok=True)
 
-    def log_canon(self, message: str) -> None:
-        """Append a canonical event to canon.log."""
-        stamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        with self.paths.canon_log_path.open("a", encoding="utf-8") as f:
-            f.write(f"[{stamp}] {message}\n")
+        self.ledger_path = self.registry_dir / "ledger.log"
+        self.canon_path = self.repo_root / "canon.log"
 
-    # -------------------------------------------------------------
-    # Registry Interaction
-    # -------------------------------------------------------------
-    def write_registry(self, entry: Dict[str, Any]) -> str:
-        """
-        Append a structured entry to the registry ledger.
-        Returns the seal.
-        """
-        to_seal = dict(entry)
-        to_seal["timestamp"] = time.time()
-        seal = self.seal(to_seal)
+        self._operators_dir = self._resolve_package_dir(self.OPERATOR_PACKAGE)
 
-        record = dict(to_seal)
-        record["seal"] = seal
+    def _resolve_package_dir(self, pkg: str) -> Path:
+        """Resolve a package directory safely in iSH.
 
-        with self.paths.registry_path.open("a", encoding="utf-8") as f:
-            f.write(json.dumps(record, separators=(",", ":")) + "\n")
-
-        self.log_canon(f"Registry entry sealed: {seal}")
-        return seal
-
-    def registry_count(self) -> int:
-        with self.paths.registry_path.open("r", encoding="utf-8") as f:
-            return sum(1 for _ in f)
-
-    # -------------------------------------------------------------
-    # Operator Dispatch
-    # -------------------------------------------------------------
-    def dispatch_operator(self, name: str, *args: Any, **kwargs: Any) -> Any:
-        """
-        Dynamically load and execute an operator from src/operators.
-
-        Convention:
-        - module: src/operators/<name>.py
-        - callable: def <name>(...) -> ...
+        Avoids importlib.util (can be missing or shadowed). Uses __import__ and __file__.
         """
         try:
-            module = __import__(f"src.operators.{name}", fromlist=[name])
-        except ImportError as e:
-            raise KernelPanic(f"Operator '{name}' not found") from e
+            mod = __import__(pkg, fromlist=["__file__"])
+        except Exception as e:
+            raise KernelPanic(f"Cannot import operator package '{pkg}': {e}") from e
+
+        mod_file = getattr(mod, "__file__", None)
+        if not mod_file:
+            raise KernelPanic(f"Operator package '{pkg}' has no __file__ (unexpected)")
+
+        return Path(mod_file).resolve().parent
+
+    def list_operators(self) -> List[str]:
+        if not self._operators_dir.exists():
+            raise KernelPanic(f"Operators directory not found: {self._operators_dir}")
+
+        ops: List[str] = []
+        for p in sorted(self._operators_dir.glob("*.py")):
+            name = p.stem
+            if name.startswith("_"):
+                continue
+            ops.append(name)
+        return ops
+
+    def log_canon(self, message: str) -> None:
+        line = f"{time.time():.3f} {message}\n"
+        with self.canon_path.open("a", encoding="utf-8") as f:
+            f.write(line)
+
+    def write_registry(self, record: DispatchRecord) -> None:
+        with self.ledger_path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(record.__dict__) + "\n")
+
+    def dispatch_operator(self, name: str, *args: Any, **kwargs: Any) -> Any:
+        available = set(self.list_operators())
+        if name not in available:
+            raise KernelPanic(f"Operator '{name}' not found. Available: {sorted(available)}")
+
+        module_path = f"{self.OPERATOR_PACKAGE}.{name}"
+        try:
+            module = importlib.import_module(module_path)
+        except Exception as e:
+            raise KernelPanic(f"Failed to import operator module: {module_path}") from e
 
         if not hasattr(module, name):
-            raise KernelPanic(f"Operator function '{name}' missing in module")
+            raise KernelPanic(f"Function '{name}' missing in operator module")
 
-        op = getattr(module, name)
-        result = op(*args, **kwargs)
+        fn = getattr(module, name)
+        result = fn(*args, **kwargs)
 
-        self.write_registry({
-            "event": "operator_dispatch",
-            "operator": name,
-            "args": list(args),   # JSON-friendly
-            "kwargs": kwargs
-        })
-
+        self.write_registry(
+            DispatchRecord(
+                event="operator_dispatch",
+                operator=name,
+                ts=time.time(),
+                args=list(args),
+                kwargs=kwargs,
+            )
+        )
         return result
 
-    # -------------------------------------------------------------
-    # Boot + Status
-    # -------------------------------------------------------------
     def boot(self) -> Dict[str, Any]:
-        self.log_canon("LucentTrinity
+        ops = self.list_operators()
+        self.log_canon(f"LucentTrinityOS boot OK | operators={ops}")
+        return {"status": "ok", "operators": ops}

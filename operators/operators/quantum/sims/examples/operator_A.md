@@ -1,3 +1,0 @@
-✓ Invariant I1 holds
-✓ Commutation [A,B]=0 under params p=...
-✓ Eigenstructure verified for operator_A

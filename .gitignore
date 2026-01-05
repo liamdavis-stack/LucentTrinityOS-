@@ -1,3 +1,7 @@
+*_LEGACY_BACKUP/
+*.BOOT_OK
+*.broken
+
 # --- Python ---
 __pycache__/
 *.py[cod]
