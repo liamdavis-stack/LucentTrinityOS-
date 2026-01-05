@@ -10,7 +10,7 @@ except Exception as e:
     pytest.skip(f"Skipping NumPy/Qiskit tests in this environment (iOS/iSH): {e}", allow_module_level=True)
 import numpy as np
 from qiskit.quantum_info import Operator
-from src.operators.OmegaD_quantum import OmegaD_quantum
+from src.axiom_engine.operators.omega_delta import omega_delta as OmegaD_quantum
 
 def test_omegad_is_unitary():
     U = Operator(OmegaD_quantum()).data

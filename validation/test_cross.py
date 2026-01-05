@@ -9,7 +9,7 @@ import numpy as np
 from itertools import product
 from qiskit.quantum_info import Operator
 
-from src.operators.Cross_quantum import Cross_quantum, Cross_inverse_quantum
+from src.axiom_engine.operators.cross import cross as Cross_quantum, cross_inverse as Cross_inverse_quantum
 
 
 def _ket3(a: int, b: int, c: int) -> np.ndarray:
