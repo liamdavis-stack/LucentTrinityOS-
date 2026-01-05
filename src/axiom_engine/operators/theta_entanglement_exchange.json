@@ -1,0 +1,12 @@
+{
+    "id": "LTO.ThetaEntanglementExchange.v1",
+    "name": "ThetaEntanglementExchange",
+    "version": "1.0.0",
+    "symbol": "\u0398\u1d31",
+    "layer": "axiom_engine",
+    "category": "quantum_operator",
+    "status": "theoretical_unitary",
+    "kind": "operator",
+    "dispatch_name": "theta_entanglement_exchange",
+    "entrypoint": "src.axiom_engine.operators.theta_entanglement_exchange:theta_entanglement_exchange"
+}
