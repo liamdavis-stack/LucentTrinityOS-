@@ -1,36 +1,31 @@
-from copy import deepcopy
-from .base import OperatorResult
+"""
+Canonical Omega Delta operator.
 
-def apply_omega_delta(state, gain=0):
-    before = deepcopy(state)
-    after = deepcopy(state)
-    for k in after: after[k]+=gain
-    meta={"symbol":"Ωᴰ","gain":gain,"op":"ghz_scaffold"}
-    return OperatorResult(before,after,"OmegaDelta",meta)
+Dual-mode:
+- If called with no args: returns the 2x2 matrix (Pauli-Z) as complex list-lists.
+- If called with a state object (e.g. dict): applies metadata / tag to state (legacy behavior).
+"""
 
-# Kernel entrypoint wrapper (iSH-safe)
-def omega_delta(state, *args, **kwargs):
-    return apply_omega_delta(state, *args, **kwargs)
+from __future__ import annotations
 
+from typing import Any, List, Optional
 
-# ----------------------------
-# CI contract: OmegaD_quantum
-# ----------------------------
-def OmegaD_quantum():
-    """
-    CI/test contract (validation/test_omegad.py):
-
-    - Unitary
-    - Involutory: U @ U == I
-    - Acts as: |0> -> |0>, |1> -> -|1>
-
-    This is the Pauli-Z gate: diag(1, -1).
-    Returned as a simple Python nested list (qiskit Operator accepts array-like).
-    """
-    return [
-        [1+0j, 0+0j],
-        [0+0j, -1+0j],
-    ]
+Matrix = List[List[complex]]
 
 
-__all__ = list(globals().get("__all__", [])) + ["OmegaD_quantum"]
+def omega_delta(state: Optional[Any] = None):
+    # Matrix form (used by CI/Qiskit Operator wrapper)
+    if state is None:
+        return [[1 + 0j, 0j],
+                [0j, -1 + 0j]]
+
+    # Legacy "state transform" form (keep backwards compat with your earlier pipeline style)
+    if isinstance(state, dict):
+        state = dict(state)
+        state["op"] = "ΩΔ"
+        return state
+
+    return state
+
+
+__all__ = ["omega_delta"]
