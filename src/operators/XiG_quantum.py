@@ -1,12 +1,6 @@
 """
-Legacy quantum operator (CI/tests).
-Provides a simple 1-qubit unitary matrix for XiΓ.
+Legacy import shim (iSH-safe).
 """
-
-import numpy as np
-
-def XiG_quantum():
-    # Identity gate (unitary)
-    return np.eye(2, dtype=complex)
+from src.axiom_engine.operators.xi_gamma import xi_gamma as XiG_quantum
 
 __all__ = ["XiG_quantum"]

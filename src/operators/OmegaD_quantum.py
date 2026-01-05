@@ -1,13 +1,9 @@
 """
-Legacy quantum operator (CI/tests).
-Provides a simple 1-qubit unitary matrix for OmegaΔ.
+Legacy import shim for CI/tests (iSH-safe: NO numpy/qiskit).
+
+Old: from src.operators.OmegaD_quantum import OmegaD_quantum
+New canonical: src.axiom_engine.operators.omega_delta
 """
-
-import numpy as np
-
-def OmegaD_quantum():
-    # Pauli-Z gate (unitary): [[1,0],[0,-1]]
-    return np.array([[1, 0],
-                     [0, -1]], dtype=complex)
+from src.axiom_engine.operators.omega_delta import OmegaD_quantum
 
 __all__ = ["OmegaD_quantum"]
