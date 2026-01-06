@@ -44,3 +44,18 @@ registry/**/ledger.log
 # simulation outputs
 operators/**/sims/outputs/
 operators/**/data/
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# iSH/editor artifacts
+*.swp
+*.swo
+
+# Local logs / run artifacts
+*.log
+*.BOOT_OK
+*.broken
