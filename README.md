@@ -12,3 +12,6 @@ Readers and contributors are expected to engage the system on its own stated ter
 *LucentTrinityOS- is not a general-purpose OS kernel; it’s a Python-based operator/axiom execution framework with a kernel-like dispatcher + sealed registry.*
 
 Sometimes described, half-jokingly, as “mathematical apologetics.”
+## Operator Catalog (Canonical Reference)
+- See `docs/operators/README.md`
+- Canonical operator reference entry: `docs/operators/omega_delta.md`
